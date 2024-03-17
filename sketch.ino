@@ -7,8 +7,10 @@ float valueOut;
 LiquidCrystal_I2C lcd(0x27,  16, 2);
 
 void setup(){
-  pinMode(A0,INPUT);                 
-  //pinMode(4,OUTPUT);               
+  pinMode(A0, INPUT); 
+  pinMode(2, OUTPUT); // Salida digital para el primer bit de Gray
+  pinMode(3, OUTPUT); // Salida digital para el segundo bit de Gray
+  pinMode(4, OUTPUT); // Salida digital para el tercer bit de Gray 
   Serial.begin(9600);
   Wire.begin();
   lcd.init();
@@ -23,33 +25,24 @@ void loop(){
 
     String codeGray = toGray(valueOut);
     Serial.println(codeGray);
-
+    
+    // Separar el código de Gray en bits individuales
+    int bit1 = codeGray.charAt(0) - '0';
+    int bit2 = codeGray.charAt(1) - '0';
+    int bit3 = codeGray.charAt(2) - '0';
+    
+    // Pasar cada bit por salidas digitales
+    digitalWrite(2, bit1);
+    digitalWrite(3, bit2);
+    digitalWrite(4, bit3);
     
     delay(500);                
      
-    /*if( valorLDR <= 400 ) 
-    {
-      //digitalWrite(4, HIGH);
-      //Serial.print("LED ON ");
-      Serial.println(valorLDR);
-      delay(500);
-    }
-  
-    else
-    {
-      //digitalWrite(4, LOW);
-      //Serial.println("LED OFF");
-      Serial.println(valorLDR);
-      delay(500);
-    }*/
-
     delay(1000);
     lcd.setCursor(0,1);
 
     lcd.print(valueOut);
-    //Colocar en otro lado de la LDR
-    /*lcd.setCursor(0,1);
-    lcd.print("Prueba");*/
+    
     delay(1000);
     lcd.clear(); 
   }
@@ -68,4 +61,4 @@ String toGray(int value) {
   }
 
   return binary;
-} 
+}
