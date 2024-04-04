@@ -15,7 +15,7 @@ int f = 13;
 int g = A1;
 
 void setup(){
-  pinMode(A0, INPUT); 
+  pinMode(A0, INPUT); // Entrada de señal del sensor
   pinMode(2, OUTPUT); // Salida digital para el primer bit de Gray
   pinMode(3, OUTPUT); // Salida digital para el segundo bit de Gray
   pinMode(4, OUTPUT); // Salida digital para el tercer bit de Gray 
@@ -29,30 +29,36 @@ void setup(){
   pinMode(e, OUTPUT); // Pin digital como salida para el e del 7 segmentos
   pinMode(f, OUTPUT); // Pin digital como salida para el f del 7 segmentos
   pinMode(g, OUTPUT); // Pin analógico como salida para el g del 7 segmentos
+  pinMode(A2,OUTPUT); // Pin analógico como salida para el accionador en A2
   Serial.begin(9600);
-  Wire.begin();
+
   lcd.init();
   lcd.backlight();               
 } 
 
 void loop(){
     
-    int valorLDR = analogRead(A0) - 8;
-    valueOut = (7. * valorLDR)/1007;
+    int valorLDR = analogRead(A0)-10;
+    valueOut = (7. * valorLDR)/936;
+    Serial.print("Rango: ");
     Serial.println(valueOut);
 
     String codeGray = toGray(valueOut);
+    Serial.print("Gray Code: ");
     Serial.println(codeGray);
     
     // Separar el código de Gray en bits individuales
-    int bit0 = codeGray.charAt(0) - '0';
-    int bit1 = codeGray.charAt(1) - '0';
-    int bit2 = codeGray.charAt(2) - '0';
+    int bit2 = codeGray.charAt(0) - '0';//Bit 2
+    int bit1 = codeGray.charAt(1) - '0';//Bit 1
+    int bit0 = codeGray.charAt(2) - '0';//Bit 0
+
+
     
     // Pasar cada bit por salidas digitales
-    digitalWrite(2, bit0);
+    digitalWrite(2, bit2);
     digitalWrite(3, bit1);
-    digitalWrite(4, bit2);
+    digitalWrite(4, bit0);
+
     
     // Leer los bits de salida y mostrarlos en el puerto serie y en la pantalla LCD
     int BitE0 = digitalRead(5);//C
@@ -68,12 +74,17 @@ void loop(){
     int decimalNumber = BCD2 * 4 + BCD1 * 2 + BCD0; // Convertir BCD a decimal
     displayNumber(decimalNumber);
 
-    
-    // Mostrar los bits de salida en el puerto serie
-    /*Serial.print("Bits de salida leídos: ");
-    Serial.print(BitE2);
-    Serial.print(BitE1);
-    Serial.println(BitE0);*/
+    //Lógica para encender el motor
+    if (1 <= decimalNumber && decimalNumber <= 2){
+      digitalWrite(A2, HIGH);
+    }
+    else if(4 <= decimalNumber && decimalNumber <= 5){
+      digitalWrite(A2, HIGH);
+    }
+    else{
+      digitalWrite(A2, LOW);
+    }
+
     
     // Mostrar los bits de salida en la pantalla LCD
     lcd.setCursor(0, 0);
@@ -87,11 +98,13 @@ void loop(){
     lcd.print(BCD2);
     lcd.print(BCD1);
     lcd.print(BCD0);
-    
-    delay(500);                
+
+    lcd.display();               
      
     delay(1000);
-    lcd.clear(); 
+    lcd.clear();
+
+
 }
 
 // Función para pasar el decimal a código de Gray
